@@ -78,9 +78,7 @@ def get_lines(path: str):
             if path == '/etc/paths' or path.startswith('/etc/paths.d/'):
                 flines = [['export PATH=' + line.strip(), i] for i, line in enumerate(lines)]
                 
-            print('\n\n')
             for line in flines:
-                print(line)
                 split = line[0].split(' ', 1)
                 path_type = split[0]
                 # name, value
@@ -100,7 +98,6 @@ if 'lines' not in st.session_state or st.session_state.path != edit_file:
 
 def delete_row(line):
     line = line[1:]
-    print('deleting line', line)
     del st.session_state.table
     del st.session_state.lines
     # delete from file

@@ -117,7 +117,7 @@ def edit_row(line, new_line):
     if edit_file == '/etc/paths' or edit_file.startswith('/etc/paths.d/'):
         new_line = new_line.split('=', 1)[1]
     
-    line = line[1:]
+    line_nums = line[1:]
     
     # make the page reload the table and lines from the file
     del st.session_state.table
@@ -127,11 +127,10 @@ def edit_row(line, new_line):
     with open(edit_file, 'r') as file:
         lines = file.readlines()
         # comment out PATH=... preceding an export command, since it'll be replaced
-        if len(line) > 1:
-            for i in range(len(line) - 1):
-                lines[line[i]] = '# ' + lines[line[i]]
+        for i in range(len(line_nums) - 1):
+            lines[line_nums[i]] = '# ' + lines[line_nums[i]]
         # preserve indenting
-        ind = line[-1]
+        ind = line_nums[-1]
         str_line = lines[ind]
         whitespace = str_line[:len(str_line) - len(str_line.lstrip())]
         lines[ind] = whitespace + new_line + '\n'
@@ -139,19 +138,30 @@ def edit_row(line, new_line):
     with open(edit_file, 'w') as file:
         file.write(''.join(lines))
 
+def add_row(new_line):
+    if edit_file == '/etc/paths' or edit_file.startswith('/etc/paths.d/'):
+        new_line = new_line.split('=', 1)[1]
+    
+    # make the page reload the table and lines from the file
+    del st.session_state.table
+    del st.session_state.lines
+    
+    with open(edit_file, 'a') as file:
+        file.write(f"\n{new_line}\n")
+
 lines, table = st.session_state.lines, st.session_state.table
 
 st.text("Exports")
 exports = st.container()
-st.button("Add New Export", key="add_exp")
+st.button("Add New Export", key="add_exp", on_click=lambda: add_row('export PATH=example/path:$PATH'))
 
 st.text("Aliases")
 aliases = st.container()
-st.button("Add New Alias", key="add_a")
+st.button("Add New Alias", key="add_a", on_click=lambda: add_row('alias example=example_name'))
 
 st.text("Sources")
 sources = st.container()
-st.button("Add New Source", key="add_s")
+st.button("Add New Source", key="add_s", on_click=lambda: add_row('. example/path'))
 
 def make_del_btn(col, name, line):
     return col.button('Delete', key=name, on_click=lambda: delete_row(line))
